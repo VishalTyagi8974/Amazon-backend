@@ -16,10 +16,9 @@ const User = require("./models/userModel");
 const app = express();
 app.use(helmet());
 
-// Enable CORS for all routes and origins
+// Enable CORS for all origins and routes
 app.use(cors({
-    origin: 'http://localhost:5173',
-    credentials: true
+    origin: '*', // Allow all origins
 }));
 
 // Use rate limiting to prevent DoS attacks
@@ -69,3 +68,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+

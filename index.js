@@ -14,9 +14,6 @@ const reviewRoutes = require("./routes/reviewRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const userRoutes = require("./routes/userRoutes");
 
-// Import Error Middleware
-const errorHandler = require("./middleware/errorHandler");
-
 const app = express();
 
 // Configure CORS
@@ -68,7 +65,19 @@ app.use("/orders", orderRoutes);
 app.use("/", userRoutes);
 
 // Use error handling middleware
-app.use(errorHandler);
+app.use((err, req, res, next) => {
+    if (res.headersSent) {
+        return next(err);
+    }
+    res.status(err.status || 500).json({
+        message: err.message || 'Internal Server Error'
+    });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(Server running on port ${PORT});
+});
 
 module.exports = app;
 

@@ -14,7 +14,7 @@ const User = require("./models/userModel");
 
 // Use Helmet to enhance security with a set of default HTTP headers
 const app = express();
-app.use(helmet());
+// app.use(helmet());
 
 // Enable CORS for all origins and routes
 app.use(cors({

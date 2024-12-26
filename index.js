@@ -19,8 +19,7 @@ const app = express();
 // Configure CORS
 const corsOptions = {
     origin: [
-        "https://amazon-frontend-7f7bceoi8-vishal-tyagis-projects-1043ebde.vercel.app",
-        "https://amazon-frontend-gray.vercel.app"
+       "https://my-amazon-project.vercel.app"
     ], // Allow these origins
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],

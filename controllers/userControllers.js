@@ -39,6 +39,7 @@ const logInUser = async (req, res, next) => {
             return res.status(500).json({ message: 'Internal server error' });
         }
         if (!user) {
+            console.error("Authentication failed:", info);
             return res.status(401).json({ message: info.message || 'Authentication failed' });
         }
 

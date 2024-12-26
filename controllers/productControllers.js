@@ -71,7 +71,7 @@ module.exports.searchCategoryProducts = async (req, res, next) => {
 
 
 module.exports.searchSearchedProducts = async (req, res, next) => {
-    const { pricing = "Default", query, rating = "Default", page = 1, limit = 10 } = req.query;
+    const { pricing = "Default", query, rating = "Default", page = 1, limit = 7 } = req.query;
     const regex = new RegExp(query, 'i');
 
     try {

@@ -24,7 +24,7 @@ module.exports.randomCategories = async (req, res) => {
 
 module.exports.searchCategoryProducts = async (req, res, next) => {
     try {
-        const { category, pricing, rating, page = 1, limit = 10 } = req.query;
+        const { category, pricing, rating, page = 1, limit = 7 } = req.query;
         const cat = replaceDashesWithSpaces(category);
 
         // Fetch the category and populate products

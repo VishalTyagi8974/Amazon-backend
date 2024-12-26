@@ -21,7 +21,7 @@ const corsOptions = {
     origin: [
        "https://my-amazon-project.vercel.app"
     ], // Allow these origins
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
     credentials: true, // Allow cookies/authentication
 };

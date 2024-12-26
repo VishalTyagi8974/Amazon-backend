@@ -46,10 +46,12 @@ const logInUser = async (req, res, next) => {
         const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
 
         res.cookie('token', token, {
-            httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
-            secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
+            httpOnly: true, // Prevent access from JavaScript
+            secure: process.env.NODE_ENV === 'production', // Only over HTTPS in production
+            sameSite: 'None', // Required for cross-origin cookies
             maxAge: 3600000 // 1 hour
         });
+
 
         return res.status(200).json({ message: 'Login successful', token });
 

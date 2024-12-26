@@ -18,11 +18,15 @@ const app = express();
 
 // Configure CORS
 const corsOptions = {
-    origin: '*', // Replace with specific domains for production, e.g., ["https://example.com"]
+    origin: [
+        "http://localhost:5173",
+        "https://amazon-frontend-7f7bceoi8-vishal-tyagis-projects-1043ebde.vercel.app"
+    ], // Allow these origins
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    credentials: true, // Set to true if cookies or authentication are required across origins
+    credentials: true, // Allow cookies/authentication
 };
+
 app.use(cors(corsOptions));
 
 // Configure Helmet

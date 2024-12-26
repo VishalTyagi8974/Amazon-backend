@@ -75,10 +75,10 @@ const userProfileData = async (req, res, next) => {
 
 const logOutUser = (req, res) => {
     // Clear the cookie by setting its expiration date to the past
-    res.clearCookie('token', {
-        httpOnly: true, // HTTP-only for security
-        secure: process.env.NODE_ENV === 'production',    // Secure cookie (HTTPS)
-        sameSite: 'strict', // CSRF protection
+   res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'None', // Ensure this matches the cookie setting
     });
 
     return res.status(200).json({ message: 'Logged out successfully' });

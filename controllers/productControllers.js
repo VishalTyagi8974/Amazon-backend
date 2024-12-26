@@ -21,9 +21,10 @@ module.exports.randomCategories = async (req, res) => {
 }
 
 
+
 module.exports.searchCategoryProducts = async (req, res, next) => {
     try {
-        const { category, pricing, rating } = req.query;
+        const { category, pricing, rating, page = 1, limit = 10 } = req.query;
         const cat = replaceDashesWithSpaces(category);
 
         // Fetch the category and populate products
@@ -34,18 +35,32 @@ module.exports.searchCategoryProducts = async (req, res, next) => {
             return res.status(404).json({ message: "Category not found" });
         }
 
-        // Sort the products based on pricing if specified
-        if (pricing === "Low-High") {
-            foundCategory.products.sort((a, b) => a.price - b.price);
-        } else if (pricing === "High-Low") {
-            foundCategory.products.sort((a, b) => b.price - a.price);
-        } else if (rating === "High-Low") {
-            foundCategory.products.sort((a, b) => b.avgRating - a.avgRating); // Fix: Use a comparison function for avgRating
+        // Sort the products based on pricing or rating if specified
+        let sortedProducts = foundCategory.products;
 
+        if (pricing === "Low-High") {
+            sortedProducts.sort((a, b) => a.price - b.price);
+        } else if (pricing === "High-Low") {
+            sortedProducts.sort((a, b) => b.price - a.price);
+        } else if (rating === "High-Low") {
+            sortedProducts.sort((a, b) => b.avgRating - a.avgRating);
         }
 
-        // Send the sorted products
-        return res.status(200).json({ products: foundCategory.products });
+        // Implement pagination
+        const totalProducts = sortedProducts.length;
+        const totalPages = Math.ceil(totalProducts / limit);
+        const startIndex = (page - 1) * limit;
+        const paginatedProducts = sortedProducts.slice(startIndex, startIndex + limit);
+
+        // Send the paginated products and pagination info
+        return res.status(200).json({
+            products: paginatedProducts,
+            pagination: {
+                currentPage: page,
+                totalPages: totalPages,
+                totalProducts: totalProducts
+            }
+        });
 
     } catch (error) {
         // Pass any errors to the error-handling middleware
@@ -54,25 +69,46 @@ module.exports.searchCategoryProducts = async (req, res, next) => {
 };
 
 
+
 module.exports.searchSearchedProducts = async (req, res, next) => {
-    const { pricing = "Default", query, rating = "Default" } = req.query;
+    const { pricing = "Default", query, rating = "Default", page = 1, limit = 10 } = req.query;
     const regex = new RegExp(query, 'i');
 
-    const foundProducts = await Product.find({ name: regex })
+    try {
+        // Find products based on search query
+        const foundProducts = await Product.find({ name: regex });
 
-    if (pricing === "Low-High") {
-        foundProducts.sort((a, b) => a.price - b.price);
-    } else if (pricing === "High-Low") {
-        foundProducts.sort((a, b) => b.price - a.price);
-    } else if (rating === "High-Low") {
-        foundProducts.sort((a, b) => b.avgRating - a.avgRating); // Fix: Use a comparison function for avgRating
+        // Sort the products based on pricing or rating if specified
+        let sortedProducts = foundProducts;
 
+        if (pricing === "Low-High") {
+            sortedProducts.sort((a, b) => a.price - b.price);
+        } else if (pricing === "High-Low") {
+            sortedProducts.sort((a, b) => b.price - a.price);
+        } else if (rating === "High-Low") {
+            sortedProducts.sort((a, b) => b.avgRating - a.avgRating);
+        }
+
+        // Implement pagination
+        const totalProducts = sortedProducts.length;
+        const totalPages = Math.ceil(totalProducts / limit);
+        const startIndex = (page - 1) * limit;
+        const paginatedProducts = sortedProducts.slice(startIndex, startIndex + limit);
+
+        // Send the paginated products and pagination info
+        return res.status(200).json({
+            products: paginatedProducts,
+            pagination: {
+                currentPage: page,
+                totalPages: totalPages,
+                totalProducts: totalProducts
+            }
+        });
+
+    } catch (error) {
+        // Pass any errors to the error-handling middleware
+        next(error);
     }
-
-    return res.status(200).json({ products: foundProducts });
-
-
-
 };
 
 module.exports.getProductWithId = async (req, res, next) => {

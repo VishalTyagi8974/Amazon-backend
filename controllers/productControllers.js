@@ -21,101 +21,95 @@ module.exports.randomCategories = async (req, res) => {
 }
 
 
-
 module.exports.searchCategoryProducts = async (req, res, next) => {
     try {
-        const { category, pricing, rating, page = 1, limit = 7 } = req.query;
+
+        const page = parseInt(req.query.page);
+
+        const { category, pricing, rating } = req.query;
+
         const cat = replaceDashesWithSpaces(category);
 
         // Fetch the category and populate products
-        const foundCategory = await Category.findOne({ title: cat }).populate("products");
+        const foundCategory = await Category.findOne({ title: cat }).populate({
+            path: "products",
+            sort: { createdAt: -1 },
+            skip: ((page - 1) * 7),
+            limit: 7
+        });
 
-        // Check if the category was found
         if (!foundCategory) {
             return res.status(404).json({ message: "Category not found" });
         }
 
-        // Sort the products based on pricing or rating if specified
-        let sortedProducts = foundCategory.products;
+        const sameCat = await Category.findOne({ title: cat });
+        const totalPages = Math.ceil(sameCat.products.length / 7);
 
+
+        // Check if the category was found
+
+
+        // Sort the products based on pricing if specified
         if (pricing === "Low-High") {
-            sortedProducts.sort((a, b) => a.price - b.price);
+            foundCategory.products.sort((a, b) => a.price - b.price);
         } else if (pricing === "High-Low") {
-            sortedProducts.sort((a, b) => b.price - a.price);
+            foundCategory.products.sort((a, b) => b.price - a.price);
         } else if (rating === "High-Low") {
-            sortedProducts.sort((a, b) => b.avgRating - a.avgRating);
+            foundCategory.products.sort((a, b) => b.avgRating - a.avgRating); // Fix: Use a comparison function for avgRating
+
         }
 
-        // Implement pagination
-        const totalProducts = sortedProducts.length;
-        const totalPages = Math.ceil(totalProducts / limit);
-        const startIndex = (page - 1) * limit;
-        const paginatedProducts = sortedProducts.slice(startIndex, startIndex + limit);
-
-        // Send the paginated products and pagination info
-        return res.status(200).json({
-            products: paginatedProducts,
-            pagination: {
-                currentPage: page,
-                totalPages: totalPages,
-                totalProducts: totalProducts
-            }
-        });
+        // Send the sorted products
+        return res.status(200).json({ products: foundCategory.products, totalPages, page });
 
     } catch (error) {
         // Pass any errors to the error-handling middleware
         next(error);
     }
 };
-
 
 
 module.exports.searchSearchedProducts = async (req, res, next) => {
-    const { pricing = "Default", query, rating = "Default", page = 1, limit = 7 } = req.query;
-    const regex = new RegExp(query, 'i');
-
     try {
-        // Find products based on search query
-        const foundProducts = await Product.find({ name: regex });
+        const { pricing = "Default", query, rating = "Default", page = 1, limit = 7 } = req.query;
+        const regex = new RegExp(query, 'i'); // Case-insensitive search for the query
+        const skip = (page - 1) * limit; // Calculate how many documents to skip
 
-        // Sort the products based on pricing or rating if specified
-        let sortedProducts = foundProducts;
+        // Fetch and sort data based on pricing or rating
+        const productsQuery = Product.find({ name: regex });
 
         if (pricing === "Low-High") {
-            sortedProducts.sort((a, b) => a.price - b.price);
+            productsQuery.sort({ price: 1 }); // Ascending price
         } else if (pricing === "High-Low") {
-            sortedProducts.sort((a, b) => b.price - a.price);
+            productsQuery.sort({ price: -1 }); // Descending price
         } else if (rating === "High-Low") {
-            sortedProducts.sort((a, b) => b.avgRating - a.avgRating);
+            productsQuery.sort({ avgRating: -1 }); // Descending rating
         }
 
-        // Implement pagination
-        const totalProducts = sortedProducts.length;
-        const totalPages = Math.ceil(totalProducts / limit);
-        const startIndex = (page - 1) * limit;
-        const paginatedProducts = sortedProducts.slice(startIndex, startIndex + limit);
+        // Apply pagination
+        const totalProducts = await Product.countDocuments({ name: regex }); // Get total product count
+        const foundProducts = await productsQuery.skip(skip).limit(parseInt(limit)); // Apply skip and limit
 
-        // Send the paginated products and pagination info
+        // Return filtered and paginated results
         return res.status(200).json({
-            products: paginatedProducts,
-            pagination: {
-                currentPage: page,
-                totalPages: totalPages,
-                totalProducts: totalProducts
-            }
+            products: foundProducts,
+            totalProducts,
+            totalPages: Math.ceil(totalProducts / limit),
+            currentPage: parseInt(page),
         });
-
-    } catch (error) {
-        // Pass any errors to the error-handling middleware
-        next(error);
+    } catch (err) {
+        next(err);
     }
 };
+
 
 module.exports.getProductWithId = async (req, res, next) => {
     try {
         const { id } = req.params;
         const productData = await Product.findById(id)
-        const productSeller = await User.findById(productData.seller)
+
+        const productSeller = await User.findById(productData.seller.toString())
+
         return res.status(200).json({ productSeller, productData })
     } catch (error) {
         console.log(error.message)
